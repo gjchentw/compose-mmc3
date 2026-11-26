@@ -31,8 +31,8 @@
 ## 6. End-to-End Integration Verification
 
 - [x] 6.1 Run the full L1–L4 verification suite end-to-end (including hosted Linux CI verification on a `smoke/*` branch or `workflow_dispatch`) and confirm a clean working tree with no committed secrets or runtime artifacts (verify: L1, L2, L3, L4)
+- [x] 6.2 Complete L5 player gameplay acceptance on staging with at least two players across Modrinth App and Prism Launcher (verify: L5 — passed, confirmed by human)
 
 ## Workflow follow-up
 
-- Complete L5 player gameplay acceptance on staging with at least two players across Modrinth App and Prism Launcher before merging to `main`.
 - After merge approval and deployment, archive `bootstrap-mmc3-stack` via `openspec archive bootstrap-mmc3-stack` in its own commit so all four specs merge into `openspec/specs/`.
