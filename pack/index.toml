@@ -249,3 +249,7 @@ metafile = true
 file = "mods/yungs-better-strongholds.pw.toml"
 hash = "73465bc3659e3a096d92ef591b7f039711c8d4a016169fb06f482dcd4a9862eb"
 metafile = true
+
+[[files]]
+file = "options.txt"
+hash = "dcc4f316acfac3406d083094ab2977221217aba55879f6cdf3646bb1c21161ad"

@@ -14,7 +14,7 @@
 ## 3. Curated MMC3 Packwiz Source & Export/Inspection Pipeline
 
 - [x] 3.1 Build the `packwiz` tools image, initialize `pack/` (`pack.toml` with placeholder `0.0.0-dev`, Minecraft `1.21.1`, Fabric `0.20.1`), add all 50 Modrinth mods (40 `both` and 10 `client`), and verify `docker compose --profile tools run --rm -T packwiz refresh` leaves `pack/` unchanged (verify: L1, L2)
-- [ ] 3.2 Verify the exact Xaero's Minimap new-waypoint keybind identifier from the pinned mod JAR, add `pack/options.txt` (`version:3955`, declared client defaults, Traveler's Backpack on `B`, Xaero's Minimap new waypoint on `N`, Xaero's World Map on `M`, Combat Roll on `R`), and verify `packwiz refresh` is a no-op (verify: L1, L2)
+- [x] 3.2 Verify the exact Xaero's Minimap new-waypoint keybind identifier from the pinned mod JAR, add `pack/options.txt` (`version:3955`, declared client defaults, Traveler's Backpack on `B`, Xaero's Minimap new waypoint on `N`, Xaero's World Map on `M`, Combat Roll on `R`), and verify `packwiz refresh` is a no-op (verify: L1, L2)
 - [ ] 3.3 Add `scripts/version-check.sh`, `scripts/make-servers-dat.py`, `scripts/pack-export.sh`, `scripts/pack-inspect.py`, `scripts/pack-inspect.sh`, and `scripts/pack-publish.sh` with the exact 50-mod side table and `mmc3` pack base name, then verify version contract, export, strict inspection, and publish dry-run pass (verify: L1, L2)
 
 ## 4. Runtime Verification Scripts (Smoke, Persistence & Restore Drill)
