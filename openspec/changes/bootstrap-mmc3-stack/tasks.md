@@ -30,7 +30,7 @@
 
 ## 6. End-to-End Integration Verification
 
-- [ ] 6.1 Run the full L1–L4 verification suite end-to-end (including hosted Linux CI verification on a `smoke/*` branch or `workflow_dispatch`) and confirm a clean working tree with no committed secrets or runtime artifacts (verify: L1, L2, L3, L4)
+- [x] 6.1 Run the full L1–L4 verification suite end-to-end (including hosted Linux CI verification on a `smoke/*` branch or `workflow_dispatch`) and confirm a clean working tree with no committed secrets or runtime artifacts (verify: L1, L2, L3, L4)
 
 ## Workflow follow-up
 
