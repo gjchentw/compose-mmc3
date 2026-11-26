@@ -2,7 +2,7 @@
 
 ## 1. Repository Foundations & Static Verification Harness
 
-- [ ] 1.1 Add `.gitignore`, `.yamllint.yaml`, `.hadolint.yaml`, `scripts/lib.sh`, `scripts/ci-env.sh`, and least-privilege containerized `scripts/lint.sh` (including a self-test proving linters see only copied target files and never `.env` or `.git`), then run `scripts/lint.sh` (verify: L1)
+- [x] 1.1 Add `.gitignore`, `.yamllint.yaml`, `.hadolint.yaml`, `scripts/lib.sh`, `scripts/ci-env.sh`, and least-privilege containerized `scripts/lint.sh` (including a self-test proving linters see only copied target files and never `.env` or `.git`), then run `scripts/lint.sh` (verify: L1)
 - [ ] 1.2 Add `config/public.env` (placeholder `SERVER_NAME=MMC3 Server` and `SERVER_PUBLIC_HOST=mc.example.com`) and a 64x64 placeholder `config/server-icon.png`, and verify lint plus PNG dimensions (verify: L1)
 
 ## 2. Docker Compose Stack & Config Contract
