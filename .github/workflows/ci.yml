@@ -81,7 +81,7 @@ jobs:
   publish:
     # Commits dist/mmc3.mrpack and dist/mmc3.env to main when the pack's
     # contents or display name changed. Runs only on pushes to main of the
-    # repository itself; skips while config/public.env holds the placeholder.
+    # repository itself; skips only when SERVER_PUBLIC_HOST is empty.
     name: Publish the pack to main
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !github.event.repository.fork
     needs: [lint, validate, pack]
@@ -95,7 +95,7 @@ jobs:
       - run: scripts/ci-env.sh
       - name: Build the tools image
         run: docker compose --profile tools build
-      - name: Commit the pack if it changed (skips while config/public.env holds placeholder)
+      - name: Commit the pack if it changed (skips only when SERVER_PUBLIC_HOST is empty)
         run: scripts/pack-publish.sh
       - name: Push the pack commit to main
         env:

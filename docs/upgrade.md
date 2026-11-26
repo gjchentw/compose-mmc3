@@ -69,7 +69,7 @@ Keep the production checkout on `main` throughout. Run staging from a separate c
 ## 3. Publish (CI)
 
 1. Merge the pull request into `main`.
-2. Wait for the `Publish the pack to main` CI job to finish. When the pack contents or `SERVER_NAME` changed (and `config/public.env` holds a real `SERVER_PUBLIC_HOST`), CI commits the updated `dist/mmc3.mrpack` and `dist/mmc3.env` to `main`.
+2. Wait for the `Publish the pack to main` CI job to finish. When the pack contents or `SERVER_NAME` changed (and `SERVER_PUBLIC_HOST` in `config/public.env` is non-empty), CI commits the updated `dist/mmc3.mrpack` and `dist/mmc3.env` to `main`. Replace the default placeholder `mc.example.com` with your real hostname before sharing the pack with players.
 
 ## 4. Upgrade production (Docker host)
 

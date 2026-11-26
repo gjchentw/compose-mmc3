@@ -28,7 +28,7 @@ A Docker Compose infrastructure template for deploying a curated Medieval MC 3 (
 
 ## Version contract
 
-In git, `pack/pack.toml` always holds `0.0.0-dev` and `.env.example` sets neither `PACK_VERSION` nor public identity variables. Only CI commits `dist/mmc3.mrpack` and `dist/mmc3.env` on `main` when pack contents or `SERVER_NAME` change (skipping while `SERVER_PUBLIC_HOST` is still `mc.example.com`). Deployments pull `main` and restart with `COMPOSE_ENV_FILES=.env,dist/mmc3.env`, keeping the server pack, MOTD, and player download link in lockstep.
+In git, `pack/pack.toml` always holds `0.0.0-dev` and `.env.example` sets neither `PACK_VERSION` nor public identity variables. Only CI commits `dist/mmc3.mrpack` and `dist/mmc3.env` on `main` when pack contents or `SERVER_NAME` change (as long as `SERVER_PUBLIC_HOST` in `config/public.env` is non-empty, including the default placeholder `mc.example.com`; replace it with your real hostname before sharing with players). Deployments pull `main` and restart with `COMPOSE_ENV_FILES=.env,dist/mmc3.env`, keeping the server pack, MOTD, and player download link in lockstep.
 
 ## Repository layout
 

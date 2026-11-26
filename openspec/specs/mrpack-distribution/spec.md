@@ -116,16 +116,20 @@ A built pack's version SHALL be `YYYY.MM.DD-<commit>`, where the date is the UTC
 - **WHEN** a pack is built from commit `4fb43ce` committed on 2026-11-26 UTC
 - **THEN** its internal version is `2026.11.26-4fb43ce`
 
-### Requirement: Every change on main republishes the pack
-On every push to `main`, CI SHALL build the pack for the pushed commit and compare its contents, ignoring the version, with the committed `dist/<pack>.mrpack`, and the display name it was built with against the one in the committed `dist/<pack>.env`. When either differs, CI SHALL commit the new pack and its version file to `main` in one commit whose message names the version and skips CI. When both are equal, nothing SHALL be committed.
+### Requirement: Every change on main republishes the pack for non-empty hosts
+On every push to `main`, CI SHALL build the pack for the pushed commit whenever `SERVER_PUBLIC_HOST` in `config/public.env` is non-empty (including `mc.example.com`), compare its contents (ignoring the version) with `dist/<pack>.mrpack` and its display name with `dist/<pack>.env`, and commit both in one CI-skipping commit when either differs. When `SERVER_PUBLIC_HOST` is empty or unset, or both files match, nothing SHALL be committed.
 
 #### Scenario: Pack contents changed on main
-- **WHEN** a commit that modifies `pack/` or `config/public.env` (with a real public host) is pushed to `main`
+- **WHEN** a commit that modifies `pack/` or `config/public.env` with a non-empty `SERVER_PUBLIC_HOST` is pushed to `main`
 - **THEN** CI commits updated `dist/<pack>.mrpack` and `dist/<pack>.env` in one commit
 
-#### Scenario: Template placeholder host skips publish
-- **WHEN** `config/public.env` still carries the placeholder host `mc.example.com`
-- **THEN** the publish job reports that it skipped and why, succeeds, and no pack is committed
+#### Scenario: Placeholder host publishes a pack
+- **WHEN** `config/public.env` carries the default placeholder host `mc.example.com` and no matching pack is committed yet
+- **THEN** CI commits `dist/<pack>.mrpack` (with a pre-filled entry pointing to `mc.example.com`) and `dist/<pack>.env` to `main`
+
+#### Scenario: Empty public host skips publish
+- **WHEN** `SERVER_PUBLIC_HOST` in `config/public.env` is empty or unset
+- **THEN** the publish job reports that it skipped because `SERVER_PUBLIC_HOST` is empty, succeeds, and no pack is committed
 
 ### Requirement: Pack version matches the expected version
 Inspection SHALL fail unless the pack's internal version has the pack version format and, when an expected version is given, equals it.
