@@ -3,7 +3,7 @@
 ## 1. Pack Export, Publish Scripts & CI Workflow
 
 - [x] 1.1 Update `scripts/pack-publish.sh` and `scripts/pack-export.sh` to allow `SERVER_PUBLIC_HOST=mc.example.com` while still skipping publish / failing export when `SERVER_PUBLIC_HOST` is empty or unset; verify with `scripts/lint.sh`, `scripts/version-check.sh`, `scripts/pack-export.sh`, `scripts/pack-inspect.sh`, and `scripts/pack-publish.sh --dry-run` (proving dry-run reports it would commit with `mc.example.com` and skips when `SERVER_PUBLIC_HOST` is empty) (verify: L1, L2)
-- [ ] 1.2 Update `.github/workflows/ci.yml` publish job comments and step name to reflect skipping only when `SERVER_PUBLIC_HOST` is empty, and verify `scripts/lint.sh` (`actionlint` and `yamllint`) and `scripts/version-check.sh` pass (verify: L1, L2)
+- [x] 1.2 Update `.github/workflows/ci.yml` publish job comments and step name to reflect skipping only when `SERVER_PUBLIC_HOST` is empty, and verify `scripts/lint.sh` (`actionlint` and `yamllint`) and `scripts/version-check.sh` pass (verify: L1, L2)
 
 ## 2. Config Comments, ADR & Documentation Sync
 
