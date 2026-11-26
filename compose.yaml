@@ -1,0 +1,104 @@
+# Production stack for the MMC3 Minecraft server. Everything configurable lives
+# in .env; see .env.example. Bounded container logs for long-running services.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "50m"
+    max-file: "5"
+
+services:
+  minecraft:
+    # Pinned by tag AND multi-arch index digest. Bump both together, via docs/upgrade.md.
+    image: docker.io/itzg/minecraft-server:2026.10.1-java21@sha256:07ab333a8542208c4c863a78fd3cf3fd1138d5a2e118306e1a316d202f69ab74
+    restart: unless-stopped
+    stop_grace_period: 2m            # let the server save before Docker kills it
+    logging: *logging
+    ports:
+      - "${MC_PORT:-25565}:25565"    # RCON (25575) is never published
+    environment:
+      EULA: "TRUE"                   # https://aka.ms/MinecraftEULA, accepted by the operator
+      TZ: "${TZ:-UTC}"
+      # --- ownership: the image chowns /data to this uid:gid on start; use the host admin's ids ---
+      UID: "${UID:-1000}"
+      GID: "${GID:-1000}"
+      # --- pack: the same mrpack players install, server side only ---
+      TYPE: "MODRINTH"
+      MODRINTH_MODPACK: "/packs/mmc3.mrpack"
+      MODRINTH_OVERRIDES_EXCLUSIONS: "options.txt,servers.dat"   # client-only override files
+      # --- JVM ---
+      MEMORY: "${MEMORY:-6G}"
+      USE_AIKAR_FLAGS: "true"
+      # --- gameplay ---
+      SERVER_NAME: "${SERVER_NAME:-MMC3 Server}"
+      # PACK_VERSION comes from dist/mmc3.env, committed by CI with the pack.
+      MOTD: "${SERVER_NAME:-MMC3 Server} | Pack ${PACK_VERSION:?comes from dist/mmc3.env; export COMPOSE_ENV_FILES=.env,dist/mmc3.env (README)}"
+      MAX_PLAYERS: "${MAX_PLAYERS:-12}"
+      VIEW_DISTANCE: "${VIEW_DISTANCE:-10}"
+      SIMULATION_DISTANCE: "${SIMULATION_DISTANCE:-6}"
+      DIFFICULTY: "${DIFFICULTY:-normal}"
+      MODE: "${MODE:-survival}"
+      PVP: "${PVP:-false}"
+      ONLINE_MODE: "true"
+      ENABLE_WHITELIST: "true"
+      ENFORCE_WHITELIST: "true"
+      # --- admin: RCON stays on the internal network; use `docker compose exec minecraft rcon-cli` ---
+      ENABLE_RCON: "true"
+      RCON_PASSWORD: "${RCON_PASSWORD:?set RCON_PASSWORD in .env}"
+    volumes:
+      - ./data:/data
+      - ./dist:/packs:ro
+      - ./config/server-icon.png:/data/server-icon.png:ro
+    healthcheck:
+      test: ["CMD", "mc-health"]
+      start_period: 5m               # modded startup is slow; the image default is too strict
+      interval: 15s
+      timeout: 10s
+      retries: 20
+    stdin_open: true
+    tty: true
+
+  backup:
+    # Companion image from the same author; coordinates save-off/save-on over RCON.
+    image: docker.io/itzg/mc-backup:2026.10.3@sha256:f86cf8466e203ebffaef2c020de35aaafbab18327ce0d3f63253f1b000d131d6
+    restart: unless-stopped
+    logging: *logging
+    # Run as the host admin so archives in ./backups are theirs to move and delete.
+    user: "${UID:-1000}:${GID:-1000}"
+    depends_on:
+      minecraft:
+        condition: service_healthy
+    environment:
+      TZ: "${TZ:-UTC}"
+      RCON_HOST: minecraft
+      RCON_PASSWORD: "${RCON_PASSWORD:?set RCON_PASSWORD in .env}"
+      BACKUP_METHOD: tar
+      INITIAL_DELAY: "0"             # compose already waited for the server to be healthy
+      BACKUP_ON_STARTUP: "true"
+      BACKUP_INTERVAL: "${BACKUP_INTERVAL:-24h}"
+      PAUSE_IF_NO_PLAYERS: "${PAUSE_IF_NO_PLAYERS:-true}"
+      PRUNE_BACKUPS_DAYS: "${PRUNE_BACKUPS_DAYS:-14}"
+      # The image default is "*.jar,cache,logs"; the three extra files hold the RCON password
+      # and are regenerated from .env on every start, so archives must not carry them.
+      EXCLUDES: "*.jar,cache,logs,.rcon-cli.env,.rcon-cli.yaml,server.properties"
+      # Pruning only looks at the top level of /backups, so backups/keep/ is safe for pre-upgrade archives.
+    volumes:
+      - ./data:/data:ro
+      - ./backups:/backups
+
+  # packwiz tooling for pack/. Profile "tools": never started with the server.
+  packwiz:
+    profiles: ["tools"]
+    build:
+      context: tools/packwiz
+    # No image: tag, so Compose tags the build per project and two repositories
+    # on one host do not overwrite each other's tools image.
+    # Run as the host user so files written to pack/ are not root-owned.
+    user: "${UID:-1000}:${GID:-1000}"
+    working_dir: /work/pack
+    # Only what pack tooling needs; never .env, world data, backups, staging
+    # copies or .git. A script that needs a working directory adds it to its
+    # own run with `docker compose run -v` (scripts/pack-export.sh).
+    volumes:
+      - ./pack:/work/pack
+      - ./scripts:/work/scripts:ro
+      - ./dist:/work/dist:ro
