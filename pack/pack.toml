@@ -1,0 +1,13 @@
+name = "MMC3 Pack"
+author = "compose-mmc3"
+version = "0.0.0-dev"
+pack-format = "packwiz:1.1.0"
+
+[index]
+file = "index.toml"
+hash-format = "sha256"
+hash = "8c55859b21400a275ec52d15bb20cfbaad204036bf45ce95d31ae0419443e95b"
+
+[versions]
+fabric = "0.20.1"
+minecraft = "1.21.1"
