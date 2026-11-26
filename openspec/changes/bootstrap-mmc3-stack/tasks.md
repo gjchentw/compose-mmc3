@@ -24,7 +24,7 @@
 
 ## 5. CI Workflow, Documentation & Harness Sync
 
-- [ ] 5.1 Add `.github/workflows/ci.yml` with commit-SHA-pinned actions, least-privilege token permissions, L1/L2 on every push and pull request, rolling publish of `dist/mmc3.mrpack` and `dist/mmc3.env` on non-fork pushes to `main` (skipping placeholder host), and hosted Linux L3/L4 on `workflow_dispatch` or `smoke/*` branches; verify lint passes (verify: L1, L2)
+- [x] 5.1 Add `.github/workflows/ci.yml` with commit-SHA-pinned actions, least-privilege token permissions, L1/L2 on every push and pull request, rolling publish of `dist/mmc3.mrpack` and `dist/mmc3.env` on non-fork pushes to `main` (skipping placeholder host), and hosted Linux L3/L4 on `workflow_dispatch` or `smoke/*` branches; verify lint passes (verify: L1, L2)
 - [ ] 5.2 Add administrator runbooks (`docs/admin-guide.md`, `docs/upgrade.md`, `docs/rollback.md`), player acceptance checklist (`docs/acceptance-checklist.md`), and bilingual player guides (`docs/pack-install-guide.md`, `docs/pack-install-guide.zh-TW.md`, `docs/play-guide.md`, `docs/play-guide.zh-TW.md`) adhering to capability ownership and link separation; verify lint passes (verify: L1)
 - [ ] 5.3 Update `AGENTS.md` and `README.md` with finalized repository layout, capability boundaries, concrete verification commands, and pack/version boundaries, and run the full L1 and L2 suite (verify: L1, L2)
 

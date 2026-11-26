@@ -1,0 +1,132 @@
+# CI for compose-mmc3: L1 and L2 on every push and pull request, with a dry run
+# of pack publish; on a push to main, the publish job commits the pack when its
+# contents or display name changed; L3/L4 on manual dispatch or a smoke/* branch.
+# Actions are pinned by commit SHA; tool images are pinned inside the scripts.
+name: ci
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One run per ref at a time. On a branch a newer push cancels the older run. On
+# main a running run is never cancelled, so a publish is never cut off.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  # The display name and public address come from committed config/public.env.
+  # Compose reads PACK_VERSION and SERVER_NAME from dist/mmc3.env.
+  COMPOSE_ENV_FILES: .env,dist/mmc3.env
+
+jobs:
+  lint:
+    name: L1 lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: scripts/lint.sh
+
+  validate:
+    name: L1 compose config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: scripts/ci-env.sh
+      - run: docker compose config -q
+      - run: docker compose -f compose.yaml -f compose.staging.yaml config -q
+      - name: Names, pins, and least-privilege tool mounts in rendered configurations
+        run: scripts/config-check.sh
+
+  pack:
+    name: L2 export and inspect
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: scripts/ci-env.sh
+      - name: Version contract (pack.toml holds placeholder; .env.example sets no PACK_VERSION)
+        run: scripts/version-check.sh
+      - name: Build the tools image
+        run: docker compose --profile tools build
+      - name: packwiz refresh must be a no-op
+        run: |
+          docker compose --profile tools run --rm -T packwiz refresh
+          git diff --exit-code pack/
+      - name: Export and inspect the pack for the pushed commit
+        run: |
+          version="$(bash -c '. scripts/lib.sh && commit_version')"
+          scripts/pack-export.sh "$version"
+          scripts/pack-inspect.sh --expect "$version"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mrpack
+          path: |
+            dist/mmc3.mrpack
+            dist/mmc3.env
+          if-no-files-found: error
+      - name: Publish dry run (would merging this commit publish a new pack?)
+        run: scripts/pack-publish.sh --dry-run
+
+  publish:
+    # Commits dist/mmc3.mrpack and dist/mmc3.env to main when the pack's
+    # contents or display name changed. Runs only on pushes to main of the
+    # repository itself; skips while config/public.env holds the placeholder.
+    name: Publish the pack to main
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !github.event.repository.fork
+    needs: [lint, validate, pack]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: scripts/ci-env.sh
+      - name: Build the tools image
+        run: docker compose --profile tools build
+      - name: Commit the pack if it changed (skips while config/public.env holds placeholder)
+        run: scripts/pack-publish.sh
+      - name: Push the pack commit to main
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          if [ "$(git rev-parse HEAD)" = "$GITHUB_SHA" ]; then
+            echo "no pack commit; nothing to push"
+            exit 0
+          fi
+          auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)"
+          echo "::add-mask::$auth"
+          git -c "http.$GITHUB_SERVER_URL/.extraheader=AUTHORIZATION: basic $auth" \
+            push origin HEAD:refs/heads/main
+
+  smoke:
+    # Manual dispatch (on default branch), or push a smoke/* branch to run L3
+    # and L4 on a hosted Linux runner from any ref.
+    name: L3 and L4 on a hosted runner (manual or smoke/* branch)
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/heads/smoke/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: scripts/ci-env.sh MEMORY=4G PAUSE_IF_NO_PLAYERS=false
+      - run: mkdir -p data backups/keep dist && chmod 750 data backups
+      - run: docker compose --profile tools build
+      - run: scripts/pack-export.sh
+      - run: scripts/smoke.sh
+      - run: scripts/persist-test.sh
+      - run: scripts/restore-drill.sh
+      - if: always()
+        run: docker compose down -v
