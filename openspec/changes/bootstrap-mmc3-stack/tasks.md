@@ -20,7 +20,7 @@
 ## 4. Runtime Verification Scripts (Smoke, Persistence & Restore Drill)
 
 - [x] 4.1 Add `scripts/smoke.sh` enforcing preflight version/project-name checks, server health within 600s, Minecraft `1.21.1`, Java 21, `spell_engine` key mod loaded, exact 40 server-side mods installed, MOTD contract, internal-only RCON, online mode/whitelist enabled, and running `backup` service; run `scripts/smoke.sh` on a local test deployment (verify: L1, L2, L3)
-- [ ] 4.2 Add `scripts/persist-test.sh`, `scripts/restore-drill.sh`, and `scripts/staging-clone-world.sh`, and run both `scripts/persist-test.sh` and `scripts/restore-drill.sh` to prove clean shutdown persistence and secret-free archive restoration (verify: L1, L2, L4)
+- [x] 4.2 Add `scripts/persist-test.sh`, `scripts/restore-drill.sh`, and `scripts/staging-clone-world.sh`, and run both `scripts/persist-test.sh` and `scripts/restore-drill.sh` to prove clean shutdown persistence and secret-free archive restoration (verify: L1, L2, L4)
 
 ## 5. CI Workflow, Documentation & Harness Sync
 
