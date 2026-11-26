@@ -1,32 +1,27 @@
 schema: spec-driven
 
-# Project context (optional)
-# Add only constraints that should guide OpenSpec artifacts and workflows.
-# Include constraints an agent cannot infer by reading the code.
-# Keep general project documentation and discoverable codebase facts out.
-# Example:
-#   context: |
-#     Designs and tasks must cover Windows, macOS, and Linux
-#     Write all artifacts in Spanish
+# Project constraints that guide every OpenSpec artifact and operation.
+# The collaboration protocol, supporting skills, and verification ladder live in AGENTS.md.
+context: |
+  Write every OpenSpec artifact in English: it is committed to the repository (AGENTS.md, Language Policy).
+  This is a Docker Compose infrastructure repository for Medieval MC 3 (MMC3) with no application code.
+  Verification is the five-level ladder in AGENTS.md (L1 static, L2 build/artifact, L3 smoke, L4 persistence,
+  L5 human acceptance), not unit tests.
+  Do not assume a specific modpack delivery mechanism until it is settled in specs.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always state what is out of scope
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+rules:
+  proposal:
+    - 'State explicitly what is out of scope.'
+  design:
+    - 'Record key decisions together with the alternatives considered and why they were rejected.'
+  tasks:
+    - 'End every task with the verification levels it must pass, for example "(verify: L1, L2)".'
 
-# Per-operation guidance (optional)
-# Add advisory guidance for how apply and archive work should be conducted.
-# This is separate from artifact rules above.
-# Example:
-#   operations:
-#     apply:
-#       guidance:
-#         - Keep test summaries concise
-#     archive:
-#       guidance:
-#         - Summarize the archive outcome before finishing
+operations:
+  apply:
+    guidance:
+      - 'Before checking off a task, run every verification level it names and show the output to the human.'
+      - 'Touch only files required by the current task; add newly discovered work to tasks.md and confirm with the human before acting.'
+  archive:
+    guidance:
+      - 'Run openspec validate before archiving and wait for human approval at the archive gate.'
