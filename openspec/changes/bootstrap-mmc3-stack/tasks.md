@@ -7,7 +7,7 @@
 
 ## 2. Docker Compose Stack & Config Contract
 
-- [ ] 2.1 Add `compose.yaml`, `compose.staging.yaml`, `.env.example`, and `tools/packwiz/Dockerfile` with role-named services (`minecraft`, `backup`, `packwiz`), pinned multi-arch image digests, least-privilege `packwiz` mounts, internal-only RCON, online mode, and enforced whitelist, and verify `docker compose config -q` for both production and staging sets (verify: L1)
+- [x] 2.1 Add `compose.yaml`, `compose.staging.yaml`, `.env.example`, and `tools/packwiz/Dockerfile` with role-named services (`minecraft`, `backup`, `packwiz`), pinned multi-arch image digests, least-privilege `packwiz` mounts, internal-only RCON, online mode, and enforced whitelist, and verify `docker compose config -q` for both production and staging sets (verify: L1)
 - [ ] 2.2 Add `scripts/config-check.sh` asserting rendered production and staging configurations have no fixed `container_name` or shared local image tag, pin all pulled images by multi-arch digest, and enforce least-privilege `packwiz` mounts, then run `scripts/lint.sh` and `scripts/config-check.sh` (verify: L1)
 - [ ] 2.3 Record foundational architectural decisions in `docs/adr/` (`0001-single-pack-for-client-and-server.md`, `0002-itzg-image-and-mc-backup-sidecar.md`, `0003-servers-dat-generated-at-export.md`, `0004-rolling-pack-from-main.md`) and verify `scripts/lint.sh` passes (verify: L1)
 
