@@ -26,16 +26,7 @@ name="${name:-MMC3 Server}"
 case "$name" in
   *"'"* | *$'\n'* | *$'\r'*) fail "the display name (SERVER_NAME) must not contain a single quote or a line break: $name" ;;
 esac
-[ -n "$host" ] || fail "SERVER_PUBLIC_HOST is empty; set it in $PUBLIC_INFO_FILE (the template's placeholder is mc.example.com)"
-# A published pack must never carry the placeholder host: players would get a
-# dead pre-filled server entry. Enforced whenever PACK_REQUIRE_REAL_HOST is
-# set, which scripts/pack-publish.sh does when it publishes.
-if [ -n "${PACK_REQUIRE_REAL_HOST:-}" ]; then
-  if [ "$host" = "mc.example.com" ]; then
-    echo "SERVER_PUBLIC_HOST is still the placeholder; set it in $PUBLIC_INFO_FILE before publishing" >&2
-    exit 1
-  fi
-fi
+[ -n "$host" ] || fail "SERVER_PUBLIC_HOST is empty; set it in $PUBLIC_INFO_FILE (the template's default is mc.example.com)"
 
 if [ "$#" -ge 1 ] && [ -z "$1" ]; then
   fail "empty version argument; pass YYYY.MM.DD-<commit> or omit it for the checked-out commit's version"

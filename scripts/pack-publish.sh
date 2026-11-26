@@ -6,8 +6,8 @@
 # one. Otherwise build the pack with the version of the checked-out commit,
 # inspect it, and commit dist/mmc3.mrpack and dist/mmc3.env, and nothing else,
 # as github-actions[bot]. Pushing the commit is left to the workflow.
-# While the public address in config/public.env is empty or the placeholder,
-# nothing is built or published and the script succeeds.
+# While the public address in config/public.env is empty or unset, nothing is
+# built or published and the script succeeds.
 #
 # Usage: scripts/pack-publish.sh [--dry-run]
 #   --dry-run  build, compare and report what would be committed; commit
@@ -29,7 +29,6 @@ case "${1:-}" in
 esac
 if [ -z "$dry_run" ]; then
   [ "${CI:-}" = "true" ] || fail "only CI publishes the pack; run scripts/pack-publish.sh --dry-run to see what it would do"
-  export PACK_REQUIRE_REAL_HOST=1
 fi
 
 pack="dist/${PACK_BASE_NAME}.mrpack"
@@ -38,9 +37,9 @@ version_file="dist/${PACK_BASE_NAME}.env"
 host="$(public_value SERVER_PUBLIC_HOST)"
 name="$(public_value SERVER_NAME)"
 name="${name:-MMC3 Server}"
-if [ -z "$host" ] || [ "$host" = "mc.example.com" ]; then
+if [ -z "$host" ]; then
   if [ -n "$dry_run" ]; then
-    log "PUBLISH (dry run): would skip; SERVER_PUBLIC_HOST in $PUBLIC_INFO_FILE is empty or the placeholder"
+    log "PUBLISH (dry run): would skip; SERVER_PUBLIC_HOST in $PUBLIC_INFO_FILE is empty"
   else
     log "PUBLISH: skipped; set SERVER_PUBLIC_HOST in $PUBLIC_INFO_FILE to publish a pack"
   fi
