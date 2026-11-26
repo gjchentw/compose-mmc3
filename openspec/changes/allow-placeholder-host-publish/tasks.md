@@ -7,7 +7,7 @@
 
 ## 2. Config Comments, ADR & Documentation Sync
 
-- [ ] 2.1 Update `config/public.env` comments, `README.md`, `docs/upgrade.md`, and `docs/adr/0003-servers-dat-generated-at-export.md` so documentation matches the new publish behavior, then run the full L1 and L2 verification suite (`scripts/lint.sh`, `docker compose config -q` for prod and staging, `scripts/config-check.sh`, `scripts/version-check.sh`, `scripts/pack-export.sh`, `scripts/pack-inspect.sh`, `scripts/pack-publish.sh --dry-run`) with a clean working tree afterward (verify: L1, L2)
+- [x] 2.1 Update `config/public.env` comments, `README.md`, `docs/upgrade.md`, and `docs/adr/0003-servers-dat-generated-at-export.md` so documentation matches the new publish behavior, then run the full L1 and L2 verification suite (`scripts/lint.sh`, `docker compose config -q` for prod and staging, `scripts/config-check.sh`, `scripts/version-check.sh`, `scripts/pack-export.sh`, `scripts/pack-inspect.sh`, `scripts/pack-publish.sh --dry-run`) with a clean working tree afterward (verify: L1, L2)
 
 ## Workflow follow-up
 

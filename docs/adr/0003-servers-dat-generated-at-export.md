@@ -23,7 +23,11 @@ variables overriding for one-off builds such as staging packs).
   is always a no-op.
 - Deployers cloning or copying the template configure their public display name and
   hostname in one committed file (`config/public.env`) with no GitHub Actions secrets.
-- CI skips publishing on `main` while `SERVER_PUBLIC_HOST` remains the placeholder
-  `mc.example.com`, ensuring published packs only ever point at a real server.
+- CI publishes `dist/mmc3.mrpack` and `dist/mmc3.env` on `main` whenever
+  `SERVER_PUBLIC_HOST` is non-empty, including the default placeholder
+  `mc.example.com` (amended via `allow-placeholder-host-publish`), and skips
+  publishing only when `SERVER_PUBLIC_HOST` is empty or unset. Deployers replace
+  `mc.example.com` with their real hostname before sharing the pack with players,
+  which changes `overrides/servers.dat` and triggers an automatic republish.
 - Export scratch directories live under `.build/` (gitignored) rather than `/tmp` so
   Docker Desktop VMs can bind-mount them on macOS and Linux alike.
