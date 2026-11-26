@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+# Export the pack from pack/ to dist/mmc3.mrpack, with its version file
+# dist/mmc3.env (PACK_VERSION=<version> and the display name the pack was
+# built with, SERVER_NAME) next to it (L2).
+# The committed pack/ is copied to a fresh build directory first, so what is
+# generated at export time (the version, servers.dat with the real server
+# host) never touches the source of truth.
+#
+# Usage: scripts/pack-export.sh [YYYY.MM.DD-<commit> | 0.0.0-dev]
+#   Without a version the pack is built with the version of the checked-out
+#   commit (commit_version in scripts/lib.sh).
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$repo_root"
+# shellcheck source=scripts/lib.sh
+. "$repo_root/scripts/lib.sh"
+
+# The display name and the public address come from config/public.env (or, for
+# a one-off build, from the environment): see public_value in scripts/lib.sh.
+name="$(public_value SERVER_NAME)"
+host="$(public_value SERVER_PUBLIC_HOST)"
+name="${name:-MMC3 Server}"
+# The name is written single-quoted into the version file, so Compose reads it
+# literally; a single quote or a line break cannot be written that way.
+case "$name" in
+  *"'"* | *$'\n'* | *$'\r'*) fail "the display name (SERVER_NAME) must not contain a single quote or a line break: $name" ;;
+esac
+[ -n "$host" ] || fail "SERVER_PUBLIC_HOST is empty; set it in $PUBLIC_INFO_FILE (the template's placeholder is mc.example.com)"
+# A published pack must never carry the placeholder host: players would get a
+# dead pre-filled server entry. Enforced whenever PACK_REQUIRE_REAL_HOST is
+# set, which scripts/pack-publish.sh does when it publishes.
+if [ -n "${PACK_REQUIRE_REAL_HOST:-}" ]; then
+  if [ "$host" = "mc.example.com" ]; then
+    echo "SERVER_PUBLIC_HOST is still the placeholder; set it in $PUBLIC_INFO_FILE before publishing" >&2
+    exit 1
+  fi
+fi
+
+if [ "$#" -ge 1 ] && [ -z "$1" ]; then
+  fail "empty version argument; pass YYYY.MM.DD-<commit> or omit it for the checked-out commit's version"
+fi
+if [ "$#" -ge 1 ]; then
+  version="$1"
+else
+  version="$(commit_version)"
+fi
+is_pack_version "$version" \
+  || fail "version '$version' is not YYYY.MM.DD-<7-character commit> or $PLACEHOLDER_VERSION"
+
+mkdir -p .build dist
+# A fresh path on every run: Docker Desktop may serve stale contents for a
+# path that was deleted and recreated while the daemon still has it cached.
+build_dir="$(mktemp -d .build/pack.XXXXXX)"
+trap 'rm -rf "$build_dir"' EXIT
+mkdir "$build_dir/pack"
+cp -R pack/. "$build_dir/pack/"
+# The version exists only in this build copy; pack/ keeps the placeholder.
+sed -i.bak "s/^version = \".*\"$/version = \"$version\"/" "$build_dir/pack/pack.toml"
+rm -f "$build_dir/pack/pack.toml.bak"
+grep -q "^version = \"$version\"$" "$build_dir/pack/pack.toml" \
+  || fail "could not set version $version in the build copy of pack.toml"
+
+# The tools container sees only pack/, scripts/ and dist/ (compose.yaml); this
+# run's build directory is added at /build. Physical path: Docker Desktop
+# cannot mount through macOS symlinks.
+build_abs="$(cd "$build_dir" && pwd -P)"
+run() {
+  docker compose --progress quiet --profile tools run --rm -T -v "$build_abs:/build" -w /build/pack packwiz "$@"
+}
+# The pre-filled entry carries the version, so players can compare it with the
+# version in the server's MOTD (public-server-info).
+docker compose --progress quiet --profile tools run --rm -T -v "$build_abs:/build" -w /build/pack --entrypoint python3 \
+  packwiz /work/scripts/make-servers-dat.py --name "$name ($version)" --host "$host" --out servers.dat
+run refresh
+run modrinth export -o "/build/${PACK_BASE_NAME}.mrpack"
+printf "PACK_VERSION=%s\nSERVER_NAME='%s'\n" "$version" "$name" > "$build_dir/${PACK_BASE_NAME}.env"
+# Both files are moved into dist/ only after the export succeeded, so a failed
+# export leaves the previous pair in dist/ as it was.
+mv "$build_dir/${PACK_BASE_NAME}.mrpack" "dist/${PACK_BASE_NAME}.mrpack"
+mv "$build_dir/${PACK_BASE_NAME}.env" "dist/${PACK_BASE_NAME}.env"
+echo "exported dist/${PACK_BASE_NAME}.mrpack and dist/${PACK_BASE_NAME}.env, version $version, display name $name" >&2
